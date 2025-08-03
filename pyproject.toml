@@ -1,0 +1,20 @@
+[project]
+name = "notia"
+version = "0.1.0"
+description = "An application to manage notes and tasks with AI assistance."
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "openai-agents[litellm]>=0.2.4",
+    "chromadb>=0.4.24",
+]
+
+[project.scripts]
+notia = "main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["src"]
