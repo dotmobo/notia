@@ -52,7 +52,7 @@ async def notia():
             response = await Runner.run(agent, query, session=session)
             print(response.final_output)
 
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, EOFError):
             print("\nGoodbye!")
             break
         except Exception as e:
