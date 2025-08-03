@@ -1,7 +1,6 @@
 import os
 import asyncio
-from agents import Agent, Runner, OpenAIChatCompletionsModel, set_tracing_disabled, AsyncOpenAI
-from agents.extensions.models.litellm_model import LitellmModel
+from agents import Agent, Runner, OpenAIChatCompletionsModel, set_tracing_disabled, AsyncOpenAI, SQLiteSession
 from tools import tools
 import logging
 
@@ -32,9 +31,11 @@ SYSTEM_PROMPT = ("You are Notia, a powerful AI assistant designed to be a develo
                  "You have access to a set of tools to add, list, delete, and search notes in a vector database. "
                  "Be helpful, concise, and proactive. When a user asks a question, use your search tool to find the most relevant notes to answer it.")
 
+
 async def notia():
     """Main asynchronous function to run the Notia agent."""
     agent = Agent(name="Notia", model=model, tools=tools, instructions=SYSTEM_PROMPT)
+    session = SQLiteSession("notia")
 
     print("Welcome to Notia! Your second brain for development projects.")
     print("Type 'exit' or 'quit' to end the session.")
@@ -48,7 +49,7 @@ async def notia():
                 break
 
             # The runner handles the interaction with the agent asynchronously.
-            response = await Runner.run(agent, query)
+            response = await Runner.run(agent, query, session=session)
             print(response.final_output)
 
         except KeyboardInterrupt:

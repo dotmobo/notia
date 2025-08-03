@@ -5,7 +5,7 @@ description = "An application to manage notes and tasks with AI assistance."
 readme = "README.md"
 requires-python = ">=3.11"
 dependencies = [
-    "openai-agents[litellm]>=0.2.4",
+    "openai-agents>=0.2.4",
     "chromadb>=0.4.24",
 ]
 
