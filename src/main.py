@@ -1,23 +1,21 @@
 import os
 import asyncio
+import logging
 from agents import Agent, Runner, OpenAIChatCompletionsModel, set_tracing_disabled, AsyncOpenAI, SQLiteSession
 from tools import tools
-import logging
 
 LOG = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 set_tracing_disabled(disabled=True)
 
+# Vérifie la présence des variables d'environnement requises
+required_env_vars = ["OPENAI_API_KEY", "OPENAI_API_MODEL", "OPENAI_API_BASE"]
+missing = [var for var in required_env_vars if var not in os.environ]
+if missing:
+    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
 
-if "OPENAI_API_KEY" not in os.environ or "OPENAI_API_MODEL" not in os.environ or "OPENAI_API_BASE" not in os.environ:
-    raise ValueError("Please set the OPENAI_API_KEY, OPENAI_API_MODEL, and OPENAI_API_BASE environment variables.")
-
-# model = LitellmModel(
-#     model="hosted_vllm/" + os.getenv("OPENAI_API_MODEL"),
-#     base_url=os.getenv("OPENAI_API_BASE"),
-#     api_key=os.getenv("OPENAI_API_KEY"),
-# )
-
+# Instanciation du modèle
 model = OpenAIChatCompletionsModel(
     model=os.getenv("OPENAI_API_MODEL"),
     openai_client=AsyncOpenAI(
@@ -26,14 +24,25 @@ model = OpenAIChatCompletionsModel(
     ),
 )
 
-SYSTEM_PROMPT = ("You are Notia, a powerful AI assistant designed to be a developer's second brain. "
-                 "Your purpose is to help manage project-related notes, ideas, tasks, and code snippets. "
-                 "You have access to a set of tools to add, list, delete, and search notes in a vector database. "
-                 "Be helpful, concise, and proactive. When a user asks a question, use your search tool to find the most relevant notes to answer it.")
+SYSTEM_PROMPT = (
+    "/no_think"
+    "You are Notia, a powerful AI assistant designed to be a developer's second brain. "
+    "Your purpose is to help manage project-related notes, ideas, tasks, and code snippets. "
+    "You have access to a set of tools to add, list, delete, and search notes in a vector database. "
+    "Be helpful, concise, and proactive. When a user asks a question, use your search tool to find the most relevant notes to answer it."
+)
 
+async def process_query(agent: Agent, session: SQLiteSession, query: str):
+    """Traite une requête utilisateur de manière asynchrone."""
+    try:
+        response = await Runner.run(agent, query, session=session)
+        print(response.final_output)
+    except Exception as e:
+        LOG.exception("Error during query processing")
+        print(f"An error occurred: {e}")
 
-async def notia():
-    """Main asynchronous function to run the Notia agent."""
+async def main():
+    """Boucle interactive principale de Notia."""
     agent = Agent(name="Notia", model=model, tools=tools, instructions=SYSTEM_PROMPT)
     session = SQLiteSession("notia")
 
@@ -48,19 +57,12 @@ async def notia():
                 print("Goodbye!")
                 break
 
-            # The runner handles the interaction with the agent asynchronously.
-            response = await Runner.run(agent, query, session=session)
-            print(response.final_output)
+            await process_query(agent, session, query)
 
         except (KeyboardInterrupt, EOFError):
             print("\nGoodbye!")
             break
-        except Exception as e:
-            print(f"An error occurred: {e}")
 
-def main():
-    """Synchronous entry point to run the Notia agent."""
-    asyncio.run(notia())
-
-if __name__ == "__main__":
-    main()
+def cli():
+    """Point d’entrée CLI pour pyproject.toml"""
+    asyncio.run(main())

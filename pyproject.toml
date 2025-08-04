@@ -10,7 +10,7 @@ dependencies = [
 ]
 
 [project.scripts]
-notia = "main:main"
+notia = "main:cli"
 
 [build-system]
 requires = ["setuptools>=61.0"]

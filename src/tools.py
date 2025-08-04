@@ -1,6 +1,9 @@
+import logging
 from agents import function_tool
 from vector_store import VectorStore
 from models import Note
+
+LOG = logging.getLogger(__name__)
 
 # Initialize the vector store once
 vs = VectorStore()
@@ -11,6 +14,7 @@ def add_note(content: str, tags: str = "") -> str:
     Adds a new note with content and optional tags.
     Tags should be a comma-separated string, e.g., "bug,frontend,urgent".
     """
+    LOG.info(f"Tool called: add_note")
     tag_list = [tag.strip() for tag in tags.split(",")] if tags else []
     note = Note(content=content, tags=tag_list)
     vs.add_note(note)
@@ -22,6 +26,7 @@ def list_all_notes() -> dict:
     Lists all the notes currently stored.
     Returns a list of all notes with their content, metadata, and IDs.
     """
+    LOG.info("Tool called: list_all_notes")
     # ChromaDB doesn't have a list all, so we get a large number of items.
     return vs.collection.get(limit=1000)
 
@@ -31,6 +36,7 @@ def delete_note(note_id: str) -> str:
     Deletes a note specified by its unique ID.
     You must provide the exact ID of the note to delete.
     """
+    LOG.info(f"Tool called: delete_note with id: {note_id}")
     vs.delete_note(note_id)
     return f"Note with ID {note_id} has been deleted."
 
@@ -40,6 +46,7 @@ def search_notes(query: str, n_results: int = 5) -> dict:
     Searches for notes that are semantically similar to the given query.
     Returns a list of the top matching notes.
     """
+    LOG.info(f"Tool called: search_notes with query: '{query}'")
     return vs.search_notes(query, n_results=n_results)
 
 # Export a list of the decorated functions for the agent
