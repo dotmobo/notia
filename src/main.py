@@ -1,54 +1,71 @@
 import os
 import asyncio
 import logging
-from agents import Agent, Runner, OpenAIChatCompletionsModel, set_tracing_disabled, AsyncOpenAI, SQLiteSession
+from agents import (
+    Agent,
+    Runner,
+    OpenAIChatCompletionsModel,
+    set_tracing_disabled,
+    AsyncOpenAI,
+    SQLiteSession,
+)
 from tools import tools
-from rich.console import Console
+from console import console
+from textwrap import dedent
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 set_tracing_disabled(disabled=True)
 
-# Vérifie la présence des variables d'environnement requises
-required_env_vars = ["OPENAI_API_KEY", "OPENAI_API_BASE"]
-missing = [var for var in required_env_vars if var not in os.environ]
-if missing:
-    raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
+SYSTEM_PROMPT = dedent("""
+    /no_think
+    You are Notia, a powerful AI assistant designed to be a developer's second brain.
+    Your purpose is to help manage project-related notes, ideas, tasks, and code snippets.
+    You have access to a set of tools to add, list, delete, and search notes in a vector database.
+    Be helpful, concise, and proactive. When a user asks a question, use your search tool to find the most relevant notes to answer it.
+    Pay close attention to the 'Rerank Score' provided by the search tool; a higher score indicates greater relevance to the query.
+""")
 
-# Instanciation du modèle
-model = OpenAIChatCompletionsModel(
-    model=os.getenv("OPENAI_API_MODEL", "qwen3"), # Utilise "qwen3" par défaut si non spécifié
-    openai_client=AsyncOpenAI(
-        base_url=os.getenv("OPENAI_API_BASE"),
-        api_key=os.getenv("OPENAI_API_KEY"),
-    ),
-)
-
-SYSTEM_PROMPT = (
-    "/no_think"
-    "You are Notia, a powerful AI assistant designed to be a developer's second brain. "
-    "Your purpose is to help manage project-related notes, ideas, tasks, and code snippets. "
-    "You have access to a set of tools to add, list, delete, and search notes in a vector database. "
-    "Be helpful, concise, and proactive. When a user asks a question, use your search tool to find the most relevant notes to answer it. Pay close attention to the 'Rerank Score' provided by the search tool; a higher score indicates greater relevance to the query."
-)
-
-console = Console()
 
 async def process_query(agent: Agent, session: SQLiteSession, query: str):
-    """Traite une requête utilisateur de manière asynchrone."""
+    """
+    Process a user query using the Notia agent.
+
+    Args:
+        agent (Agent): The Notia agent instance.
+        session (SQLiteSession): The session for database interactions.
+        query (str): The user query to process.
+
+    Returns:
+        None
+    """
     try:
         response = await Runner.run(agent, query, session=session)
         console.print(response.final_output)
     except Exception as e:
         LOG.exception(f"Error during query processing: {e}")
 
+
 async def main():
-    """Boucle interactive principale de Notia."""
+    """
+    Main function to initialize the Notia agent and start the interactive loop.
+    It sets up the agent with the OpenAI model and tools, and handles user input.
+    """
+
+    model = OpenAIChatCompletionsModel(
+        model=os.getenv("OPENAI_API_MODEL", "qwen3"),
+        openai_client=AsyncOpenAI(
+            base_url=os.getenv("OPENAI_API_BASE"),
+            api_key=os.getenv("OPENAI_API_KEY"),
+        ),
+    )
     agent = Agent(name="Notia", model=model, tools=tools, instructions=SYSTEM_PROMPT)
     session = SQLiteSession("notia")
 
-    console.print("[bold green]Welcome to Notia! Your second brain for development projects.[/bold green]")
+    console.print(
+        "[bold green]Welcome to Notia! Your second brain for development projects.[/bold green]"
+    )
     console.print("Type 'exit' or 'quit' to end the session.")
 
     while True:
@@ -65,6 +82,19 @@ async def main():
             console.print("\n[bold red]Goodbye![/bold red]")
             break
 
+
 def cli():
-    """Point d’entrée CLI pour pyproject.toml"""
+    """
+    Entrypoint to the Notia CLI.
+    Checks for required environment variables and starts the main loop.
+    """
+
+    missing = [
+        var for var in ["OPENAI_API_KEY", "OPENAI_API_BASE"] if var not in os.environ
+    ]
+    if missing:
+        raise EnvironmentError(
+            f"Missing required environment variables: {', '.join(missing)}"
+        )
+
     asyncio.run(main())
