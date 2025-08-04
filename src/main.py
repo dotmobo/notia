@@ -38,8 +38,7 @@ async def process_query(agent: Agent, session: SQLiteSession, query: str):
         response = await Runner.run(agent, query, session=session)
         print(response.final_output)
     except Exception as e:
-        LOG.exception("Error during query processing")
-        print(f"An error occurred: {e}")
+        LOG.exception(f"Error during query processing: {e}")
 
 async def main():
     """Boucle interactive principale de Notia."""
