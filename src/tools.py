@@ -38,12 +38,12 @@ def list_all_notes() -> dict:
     LOG.info("Tool called: list_all_notes")
     
     notes_data = vs.collection.get(limit=1000)
+    console = Console()
     
     if not notes_data or not notes_data.get('ids'):
-        print("No notes found.")
+        console.print("[bold yellow]No notes found.[/bold yellow]")
         return {}
 
-    console = Console()
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("ID", style="dim", width=36)
     table.add_column("Content")
@@ -96,12 +96,12 @@ def search_notes(query: str, n_results: int = 5) -> dict:
     LOG.info(f"Tool called: search_notes with query: '{query}'")
     
     search_results = vs.search_notes(query, n_results=n_results)
+    console = Console()
     
     if not search_results or not search_results.get('ids') or not search_results['ids'][0]:
-        print("No matching notes found.")
+        console.print("[bold yellow]No matching notes found.[/bold yellow]")
         return {}
 
-    console = Console()
     table = Table(title=f"Search Results for: '{query}'", show_header=True, header_style="bold cyan")
     table.add_column("ID", style="dim", width=36)
     table.add_column("Content")

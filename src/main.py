@@ -3,6 +3,7 @@ import asyncio
 import logging
 from agents import Agent, Runner, OpenAIChatCompletionsModel, set_tracing_disabled, AsyncOpenAI, SQLiteSession
 from tools import tools
+from rich.console import Console
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -32,11 +33,13 @@ SYSTEM_PROMPT = (
     "Be helpful, concise, and proactive. When a user asks a question, use your search tool to find the most relevant notes to answer it."
 )
 
+console = Console()
+
 async def process_query(agent: Agent, session: SQLiteSession, query: str):
     """Traite une requête utilisateur de manière asynchrone."""
     try:
         response = await Runner.run(agent, query, session=session)
-        print(response.final_output)
+        console.print(response.final_output)
     except Exception as e:
         LOG.exception(f"Error during query processing: {e}")
 
@@ -45,21 +48,21 @@ async def main():
     agent = Agent(name="Notia", model=model, tools=tools, instructions=SYSTEM_PROMPT)
     session = SQLiteSession("notia")
 
-    print("Welcome to Notia! Your second brain for development projects.")
-    print("Type 'exit' or 'quit' to end the session.")
+    console.print("[bold green]Welcome to Notia! Your second brain for development projects.[/bold green]")
+    console.print("Type 'exit' or 'quit' to end the session.")
 
     while True:
         try:
-            query = input("\nnotia> ")
+            query = console.input("\n[bold cyan]notia>[/bold cyan] ")
 
             if query.lower() in ["exit", "quit"]:
-                print("Goodbye!")
+                console.print("[bold red]Goodbye![/bold red]")
                 break
 
             await process_query(agent, session, query)
 
         except (KeyboardInterrupt, EOFError):
-            print("\nGoodbye!")
+            console.print("\n[bold red]Goodbye![/bold red]")
             break
 
 def cli():
