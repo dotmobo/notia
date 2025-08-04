@@ -4,6 +4,7 @@ from vector_store import VectorStore
 from models import Note
 from rich.console import Console
 from rich.table import Table
+import asyncio # Ajout de l'import pour asyncio
 
 LOG = logging.getLogger(__name__)
 
@@ -82,25 +83,58 @@ def delete_note(note_id: str) -> str:
     return f"Note with ID {note_id} has been deleted."
 
 @function_tool
-def search_notes(query: str, n_results: int = 5) -> dict:
+async def search_notes(query: str, initial_n_results: int = 20, final_n_results: int = 5) -> dict:
     """Searches for notes, displays them to the user in a formatted table, and returns the raw data.
     The user has already seen the formatted table in the console.
 
     Args:
         query (str): The search query for finding semantically similar notes.
-        n_results (int, optional): The number of results to return. Defaults to 5.
+        initial_n_results (int, optional): The number of results to retrieve from the vector store before reranking. Defaults to 20.
+        final_n_results (int, optional): The number of top results to return after reranking. Defaults to 5.
 
     Returns:
         dict: The raw search result data from the vector store.
     """
     LOG.info(f"Tool called: search_notes with query: '{query}'")
     
-    search_results = vs.search_notes(query, n_results=n_results)
+    search_results = vs.search_notes(query, n_results=initial_n_results)
     console = Console()
     
     if not search_results or not search_results.get('ids') or not search_results['ids'][0]:
         console.print("[bold yellow]No matching notes found.[/bold yellow]")
         return {}
+
+    ids = search_results['ids'][0]
+    documents = search_results['documents'][0]
+    metadatas = search_results['metadatas'][0]
+    distances = search_results['distances'][0]
+
+    # Préparer les documents pour le reranking
+    docs_to_rerank = []
+    for i, doc_content in enumerate(documents):
+        docs_to_rerank.append(doc_content)
+
+    # Effectuer le reranking
+    reranked_results = await vs.rerank_documents(query, docs_to_rerank)
+
+    # Créer un dictionnaire pour un accès facile aux scores de reranking
+    rerank_scores = {doc["index"]: doc["relevance_score"] for doc in reranked_results}
+
+    # Combiner les données originales avec les scores de reranking et trier
+    combined_results = []
+    for i, note_id in enumerate(ids):
+        combined_results.append({
+            "id": note_id,
+            "content": documents[i],
+            "tags": metadatas[i].get('tags', ''),
+            "timestamp": metadatas[i].get('timestamp', ''),
+            "distance": distances[i],
+            "rerank_score": rerank_scores.get(i, 0.0) # Utilise 0.0 si le score n'est pas trouvé
+        })
+    
+    # Trier par rerank_score en ordre décroissant et prendre les 'final_n_results' premiers
+    combined_results.sort(key=lambda x: x["rerank_score"], reverse=True)
+    final_results = combined_results[:final_n_results]
 
     table = Table(title=f"Search Results for: '{query}'", show_header=True, header_style="bold cyan")
     table.add_column("ID", style="dim", width=36)
@@ -108,31 +142,27 @@ def search_notes(query: str, n_results: int = 5) -> dict:
     table.add_column("Tags")
     table.add_column("Timestamp")
     table.add_column("Distance", style="yellow")
+    table.add_column("Rerank Score", style="green") # Nouvelle colonne pour le score de reranking
 
-    ids = search_results['ids'][0]
-    documents = search_results['documents'][0]
-    metadatas = search_results['metadatas'][0]
-    distances = search_results['distances'][0]
-
-    for i, note_id in enumerate(ids):
-        content = documents[i]
-        metadata = metadatas[i]
-        distance = distances[i]
-        
-        tags = metadata.get('tags', '')
-        timestamp = metadata.get('timestamp', '')
-        
+    for result in final_results: # Itérer sur final_results
         table.add_row(
-            note_id,
-            content,
-            tags,
-            timestamp,
-            f"{distance:.4f}"
+            result["id"],
+            result["content"],
+            result["tags"],
+            result["timestamp"],
+            f'{result["distance"]:.4f}',
+            f'{result["rerank_score"]:.4f}'
         )
 
     console.print(table)
     
-    return search_results
+    # Retourner les résultats rerankés (ou les résultats originaux si le reranking échoue)
+    return {
+        "ids": [[r["id"] for r in final_results]], # Utiliser final_results
+        "documents": [[r["content"] for r in final_results]], # Utiliser final_results
+        "metadatas": [[{"tags": r["tags"], "timestamp": r["timestamp"], "rerank_score": r["rerank_score"]} for r in final_results]], # Utiliser final_results et inclure le rerank_score
+        "distances": [[r["distance"] for r in final_results]] # Utiliser final_results
+    }
 
 # Export a list of the decorated functions for the agent
 tools = [add_note, list_all_notes, delete_note, search_notes]

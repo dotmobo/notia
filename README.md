@@ -49,6 +49,7 @@ export OPENAI_API_KEY="your_api_key"
 export OPENAI_API_BASE="your_api_base_url"
 export OPENAI_API_MODEL="your_model_name" # Optional, defaults to "qwen3"
 export OPENAI_EMBEDDING_MODEL="your_embedding_model_name"
+export OPENAI_RERANK_MODEL="your_rerank_model_name" # Optional, defaults to "bge-reranker"
 ```
 
 Create a `.env` file or export these variables in your shell before running the application.
