@@ -1,6 +1,7 @@
 import os
 import asyncio
 import logging
+from dotenv import load_dotenv
 from agents import (
     Agent,
     Runner,
@@ -90,8 +91,17 @@ def cli():
     Checks for required environment variables and starts the main loop.
     """
 
+    load_dotenv()
+
     missing = [
-        var for var in ["OPENAI_API_KEY", "OPENAI_API_BASE"] if var not in os.environ
+        var
+        for var in [
+            "OPENAI_API_KEY",
+            "OPENAI_API_BASE",
+            "OPENAI_EMBEDDING_MODEL",
+            "OPENAI_RERANK_MODEL",
+        ]
+        if var not in os.environ
     ]
     if missing:
         raise EnvironmentError(
