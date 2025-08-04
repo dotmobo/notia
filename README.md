@@ -73,20 +73,20 @@ notia
 You will be greeted by the `notia>` prompt. Here are a few examples of what you can do:
 
 - **Add a new note:**
-  > `add_note content="I need to refactor the authentication module to use JWT." tags="auth,backend,task"`
+  > Add a note: I need to refactor the authentication module to use JWT. Tags: auth, backend, task.
 
 - **Search for notes:**
-  > `What are the current tasks for the backend?`
+  > What are the current tasks for the backend?
 
 - **List all your notes:**
-  > `list_all_notes`
+  > List all my notes.
 
 - **Delete a note (you need its ID from the list or add command):**
-  > `delete_note note_id="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"`
+  > Delete the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 
 - **Have a conversation:**
-  > `notia> search for notes about authentication`
-  > `[...search results...]`
-  > `notia> summarize them`
+  > Search for notes about authentication
+  > [...search results...]
+  > Summarize them
 
 To exit the application, simply type `exit` or `quit`.
