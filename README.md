@@ -42,12 +42,13 @@ Leveraging a vector database, Notia allows for intelligent, semantic search acro
 
 ### Configuration
 
-Notia requires three environment variables to connect to your AI model provider:
+Notia requires the following environment variables to connect to your AI model provider:
 
 ```bash
 export OPENAI_API_KEY="your_api_key"
 export OPENAI_API_BASE="your_api_base_url"
-export OPENAI_API_MODEL="your_model_name"
+export OPENAI_API_MODEL="your_model_name" # Optional, defaults to "qwen3"
+export OPENAI_EMBEDDING_MODEL="your_embedding_model_name"
 ```
 
 Create a `.env` file or export these variables in your shell before running the application.

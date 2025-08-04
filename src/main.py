@@ -11,14 +11,14 @@ logging.basicConfig(level=logging.INFO)
 set_tracing_disabled(disabled=True)
 
 # Vérifie la présence des variables d'environnement requises
-required_env_vars = ["OPENAI_API_KEY", "OPENAI_API_MODEL", "OPENAI_API_BASE"]
+required_env_vars = ["OPENAI_API_KEY", "OPENAI_API_BASE"]
 missing = [var for var in required_env_vars if var not in os.environ]
 if missing:
     raise EnvironmentError(f"Missing required environment variables: {', '.join(missing)}")
 
 # Instanciation du modèle
 model = OpenAIChatCompletionsModel(
-    model=os.getenv("OPENAI_API_MODEL"),
+    model=os.getenv("OPENAI_API_MODEL", "qwen3"), # Utilise "qwen3" par défaut si non spécifié
     openai_client=AsyncOpenAI(
         base_url=os.getenv("OPENAI_API_BASE"),
         api_key=os.getenv("OPENAI_API_KEY"),
