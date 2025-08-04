@@ -9,7 +9,6 @@ from agents import (
     AsyncOpenAI,
     SQLiteSession,
 )
-from tools import tools
 from console import console
 from textwrap import dedent
 
@@ -52,6 +51,7 @@ async def main():
     Main function to initialize the Notia agent and start the interactive loop.
     It sets up the agent with the OpenAI model and tools, and handles user input.
     """
+    from tools import tools  # Import tools after settings of the environment variables
 
     model = OpenAIChatCompletionsModel(
         model=os.getenv("OPENAI_API_MODEL", "qwen3"),
@@ -60,6 +60,7 @@ async def main():
             api_key=os.getenv("OPENAI_API_KEY"),
         ),
     )
+
     agent = Agent(name="Notia", model=model, tools=tools, instructions=SYSTEM_PROMPT)
     session = SQLiteSession("notia")
 
