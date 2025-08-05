@@ -81,6 +81,9 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
 - **List all your notes:**
   > List all my notes.
 
+- **List all projects:**
+  > List all projects
+
 - **Delete a note (you need its ID from the list or add command):**
   > Delete the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 

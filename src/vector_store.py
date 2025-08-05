@@ -188,14 +188,33 @@ class VectorStore:
             dict: The search results containing note IDs, documents, and metadata.
         """
         LOG.info(f"Retrieving notes with project: {project}")
-        
+
         # Use ChromaDB's where clause to filter by metadata
-        results = self.collection.get(
-            where={"project": project},
-            limit=1000
-        )
-        
+        results = self.collection.get(where={"project": project}, limit=1000)
+
         return results
+
+    def get_all_projects(self) -> list[str]:
+        """
+        Retrieves all unique projects from the vector store.
+
+        Returns:
+            list[str]: List of unique project names.
+        """
+        LOG.info("Retrieving all unique projects from vector store.")
+        all_notes = self.get_all_notes()
+
+        if not all_notes or not all_notes.get("metadatas"):
+            return []
+
+        # Extract unique projects from metadata
+        projects = set()
+        for metadata in all_notes["metadatas"]:
+            project = metadata.get("project", "")
+            if project:  # Only add non-empty projects
+                projects.add(project)
+
+        return sorted(list(projects))
 
 
 # Initialize the vector store once

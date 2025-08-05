@@ -186,6 +186,29 @@ def search_notes_by_project(project: str) -> dict:
 
 
 @function_tool
+def list_all_projects() -> list[str]:
+    """
+    Lists all unique projects in the system.
+
+    Returns:
+        list[str]: List of all unique project names.
+    """
+    LOG.info("Tool called: list_all_projects")
+
+    projects = vs.get_all_projects()
+
+    if not projects:
+        console.print("[bold yellow]No projects found.[/bold yellow]")
+        return []
+
+    console.print(f"[bold green]Found {len(projects)} project(s):[/bold green]")
+    for i, project in enumerate(projects, 1):
+        console.print(f"  {i}. {project}")
+
+    return projects
+
+
+@function_tool
 async def search_notes(
     query: str, initial_n_results: int = 20, final_n_results: int = 5
 ) -> dict:
@@ -288,4 +311,5 @@ tools = [
     edit_note,
     get_note_by_id,
     search_notes_by_project,
+    list_all_projects,
 ]
