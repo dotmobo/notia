@@ -102,7 +102,7 @@ class VectorStore:
             ids=[note.id],
             documents=[note.content],
             metadatas=[
-                {"timestamp": note.timestamp.isoformat(), "tags": ",".join(note.tags)}
+                {"timestamp": note.timestamp.isoformat(), "project": note.project or ""}
             ],
         )
 
@@ -123,7 +123,7 @@ class VectorStore:
         """
         Overwrites an existing note in the vector store.
 
-        If a note with the same ID already exists, its content, tags, and timestamp
+        If a note with the same ID already exists, its content, project, and timestamp
         will be completely replaced with the new data provided in the `note` object.
 
         Args:
@@ -136,7 +136,7 @@ class VectorStore:
             ids=[note.id],
             documents=[note.content],
             metadatas=[
-                {"timestamp": note.timestamp.isoformat(), "tags": ",".join(note.tags)}
+                {"timestamp": note.timestamp.isoformat(), "project": note.project or ""}
             ],
         )
 
@@ -177,42 +177,25 @@ class VectorStore:
         LOG.info("Retrieving all notes from vector store.")
         return self.collection.get(limit=1000)
 
-    def get_notes_by_tags(self, tags: list[str]) -> dict:
+    def get_notes_by_project(self, project: str) -> dict:
         """
-        Retrieves notes that contain any of the specified tags.
+        Retrieves notes that belong to the specified project using ChromaDB metadata query.
 
         Args:
-            tags (list[str]): A list of tags to search for.
+            project (str): The project name to search for.
 
         Returns:
             dict: The search results containing note IDs, documents, and metadata.
         """
-        LOG.info(f"Retrieving notes with tags: {tags}")
-        all_notes = self.get_all_notes()
-
-        if not all_notes or not all_notes.get("ids"):
-            return {"ids": [], "documents": [], "metadatas": []}
-
-        matching_ids = []
-        matching_documents = []
-        matching_metadatas = []
-
-        search_tags_set = set(tags)
-
-        for i, metadata in enumerate(all_notes["metadatas"]):
-            note_tags_str = metadata.get("tags", "")
-            if note_tags_str:
-                note_tags_set = set(tag.strip() for tag in note_tags_str.split(","))
-                if not search_tags_set.isdisjoint(note_tags_set):
-                    matching_ids.append(all_notes["ids"][i])
-                    matching_documents.append(all_notes["documents"][i])
-                    matching_metadatas.append(all_notes["metadatas"][i])
-
-        return {
-            "ids": matching_ids,
-            "documents": matching_documents,
-            "metadatas": matching_metadatas,
-        }
+        LOG.info(f"Retrieving notes with project: {project}")
+        
+        # Use ChromaDB's where clause to filter by metadata
+        results = self.collection.get(
+            where={"project": project},
+            limit=1000
+        )
+        
+        return results
 
 
 # Initialize the vector store once

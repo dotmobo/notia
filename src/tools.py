@@ -9,20 +9,19 @@ LOG = logging.getLogger(__name__)
 
 
 @function_tool
-def add_note(content: str, tags: str = "") -> str:
+def add_note(content: str, project: str = "") -> str:
     """
-    Adds a new note with content and optional tags.
+    Adds a new note with content and optional project.
 
     Args:
         content (str): The main content of the note.
-        tags (str, optional): A comma-separated string of tags. Defaults to "".
+        project (str, optional): The project name for this note. Defaults to "".
 
     Returns:
         str: A confirmation message with the new note's ID.
     """
     LOG.info("Tool called: add_note")
-    tag_list = [tag.strip() for tag in tags.split(",")] if tags else []
-    note = Note(content=content, tags=tag_list)
+    note = Note(content=content, project=project)
     vs.add_note(note)
     return f"Note added successfully with ID: {note.id}"
 
@@ -47,16 +46,16 @@ def list_all_notes() -> dict:
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("ID", style="dim", width=36)
     table.add_column("Content")
-    table.add_column("Tags")
+    table.add_column("Project")
     table.add_column("Timestamp")
 
     for i, note_id in enumerate(notes_data["ids"]):
         content = notes_data["documents"][i]
         metadata = notes_data["metadatas"][i]
-        tags = metadata.get("tags", "")
+        project = metadata.get("project", "")
         timestamp = metadata.get("timestamp", "")
 
-        table.add_row(note_id, content, tags, timestamp)
+        table.add_row(note_id, content, project, timestamp)
 
     console.print(table)
 
@@ -80,17 +79,17 @@ def delete_note(note_id: str) -> str:
 
 
 @function_tool
-def edit_note(note_id: str, new_content: str, new_tags: str = "") -> str:
+def edit_note(note_id: str, new_content: str, new_project: str = "") -> str:
     """
-    Overwrites an existing note with new content and tags.
+    Overwrites an existing note with new content and project.
 
-    This function completely replaces the content and tags of an existing note
+    This function completely replaces the content and project of an existing note
     identified by its ID. The timestamp is automatically updated to the current time.
 
     Args:
         note_id (str): The ID of the note to edit.
         new_content (str): The new content to overwrite the note with.
-        new_tags (str, optional): A comma-separated string of new tags. Defaults to "".
+        new_project (str, optional): The new project name. Defaults to "".
 
     Returns:
         str: A confirmation message indicating the note has been updated.
@@ -98,16 +97,12 @@ def edit_note(note_id: str, new_content: str, new_tags: str = "") -> str:
     LOG.info(f"Tool called: edit_note with id: {note_id}")
 
     # Create a new note object with the provided data
-    tag_list = [tag.strip() for tag in new_tags.split(",")] if new_tags else []
-    updated_note = Note(
-        id=note_id,
+    note = Note(
         content=new_content,
-        tags=tag_list,
+        project=new_project,
+        id=note_id,
     )
-
-    # Overwrite the existing note in the vector store
-    vs.update_note(updated_note)
-
+    vs.update_note(note)
     return f"Note with ID {note_id} has been updated."
 
 
@@ -130,19 +125,18 @@ def get_note_by_id(note_id: str) -> dict:
         console.print(f"[bold yellow]No note found with ID: {note_id}[/bold yellow]")
         return {}
 
-    table = Table(show_header=True, header_style="bold magenta")
+    table = Table(show_header=True, header_style="bold green")
     table.add_column("ID", style="dim", width=36)
     table.add_column("Content")
-    table.add_column("Tags")
+    table.add_column("Project")
     table.add_column("Timestamp")
 
-    note_id = note_data["ids"][0]
     content = note_data["documents"][0]
     metadata = note_data["metadatas"][0]
-    tags = metadata.get("tags", "")
+    project = metadata.get("project", "")
     timestamp = metadata.get("timestamp", "")
 
-    table.add_row(note_id, content, tags, timestamp)
+    table.add_row(note_id, content, project, timestamp)
 
     console.print(table)
 
@@ -150,42 +144,41 @@ def get_note_by_id(note_id: str) -> dict:
 
 
 @function_tool
-def search_notes_by_tags(tags: str) -> dict:
+def search_notes_by_project(project: str) -> dict:
     """
-    Searches for notes by tags and displays them to the user.
+    Searches for notes by project and displays them to the user.
 
     Args:
-        tags (str): A comma-separated string of tags to search for.
+        project (str): The project name to search for.
 
     Returns:
         dict: The raw search result data from the vector store.
     """
-    LOG.info(f"Tool called: search_notes_by_tags with tags: '{tags}'")
+    LOG.info(f"Tool called: search_notes_by_project with project: '{project}'")
 
-    tag_list = [tag.strip() for tag in tags.split(",")]
-    notes_data = vs.get_notes_by_tags(tag_list)
+    notes_data = vs.get_notes_by_project(project)
 
     if not notes_data or not notes_data.get("ids"):
         console.print("[bold yellow]No matching notes found.[/bold yellow]")
         return {}
 
     table = Table(
-        title=f"Search Results for tags: '{tags}'",
+        title=f"Search Results for project: '{project}'",
         show_header=True,
         header_style="bold cyan",
     )
     table.add_column("ID", style="dim", width=36)
     table.add_column("Content")
-    table.add_column("Tags")
+    table.add_column("Project")
     table.add_column("Timestamp")
 
     for i, note_id in enumerate(notes_data["ids"]):
         content = notes_data["documents"][i]
         metadata = notes_data["metadatas"][i]
-        tags = metadata.get("tags", "")
+        project = metadata.get("project", "")
         timestamp = metadata.get("timestamp", "")
 
-        table.add_row(note_id, content, tags, timestamp)
+        table.add_row(note_id, content, project, timestamp)
 
     console.print(table)
 
@@ -235,7 +228,7 @@ async def search_notes(
             {
                 "id": note_id,
                 "content": documents[i],
-                "tags": metadatas[i].get("tags", ""),
+                "project": metadatas[i].get("project", ""),
                 "timestamp": metadatas[i].get("timestamp", ""),
                 "distance": distances[i],
                 "rerank_score": rerank_scores.get(i, 0.0),
@@ -252,7 +245,7 @@ async def search_notes(
     )
     table.add_column("ID", style="dim", width=36)
     table.add_column("Content")
-    table.add_column("Tags")
+    table.add_column("Project")
     table.add_column("Timestamp")
     table.add_column("Distance", style="yellow")
     table.add_column("Rerank Score", style="green")
@@ -261,7 +254,7 @@ async def search_notes(
         table.add_row(
             result["id"],
             result["content"],
-            result["tags"],
+            result["project"],
             result["timestamp"],
             f"{result['distance']:.4f}",
             f"{result['rerank_score']:.4f}",
@@ -275,7 +268,7 @@ async def search_notes(
         "metadatas": [
             [
                 {
-                    "tags": r["tags"],
+                    "project": r["project"],
                     "timestamp": r["timestamp"],
                     "rerank_score": r["rerank_score"],
                 }
@@ -294,5 +287,5 @@ tools = [
     search_notes,
     edit_note,
     get_note_by_id,
-    search_notes_by_tags,
+    search_notes_by_project,
 ]

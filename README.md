@@ -73,7 +73,7 @@ notia
 You will be greeted by the `notia>` prompt. Here are a few examples of what you can do:
 
 - **Add a new note:**
-  > Add a note: I need to refactor the authentication module to use JWT. Tags: auth, backend, task.
+  > Add a note: I need to refactor the authentication module to use JWT. Project: auth-backend.
 
 - **Search for notes:**
   > What are the current tasks for the backend?
@@ -85,13 +85,13 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
   > Delete the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 
 - **Edit a note (you need its ID from the list or add command):**
-  > Edit the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. New content: I have refactored the authentication module. New tags: auth, backend, completed.
+  > Edit the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. New content: I have refactored the authentication module. New project: auth-backend.
 
 - **Get a note by ID:**
   > Get the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 
-- **Search for notes by tags:**
-  > Search for notes with tags: auth, backend
+- **Search for notes by project:**
+  > Search for notes with project: auth-backend
 
 - **Have a conversation:**
   > Search for notes about authentication
