@@ -2,6 +2,11 @@ import os
 import asyncio
 import logging
 from dotenv import load_dotenv
+from textwrap import dedent
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.formatted_text import HTML
+
 from agents import (
     Agent,
     Runner,
@@ -11,7 +16,6 @@ from agents import (
     SQLiteSession,
 )
 from console import console
-from textwrap import dedent
 
 LOG = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -65,6 +69,8 @@ async def main():
     agent = Agent(name="Notia", model=model, tools=tools, instructions=SYSTEM_PROMPT)
     session = SQLiteSession("notia")
 
+    session_prompt = PromptSession()
+
     console.print(
         "[bold green]Welcome to Notia! Your second brain for development projects.[/bold green]"
     )
@@ -72,9 +78,11 @@ async def main():
 
     while True:
         try:
-            query = console.input("\n[bold cyan]notia>[/bold cyan] ")
+            query = await session_prompt.prompt_async(
+                HTML("<ansicyan><b>notia></b></ansicyan> ")
+            )
 
-            if query.lower() in ["exit", "quit"]:
+            if query.lower() in ["exit", "quit"]: # or CTRL+D
                 console.print("[bold red]Goodbye![/bold red]")
                 break
 
