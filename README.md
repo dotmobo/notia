@@ -90,6 +90,9 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
 - **Get a note by ID:**
   > Get the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 
+- **Search for notes by tags:**
+  > Search for notes with tags: auth, backend
+
 - **Have a conversation:**
   > Search for notes about authentication
   > [...search results...]

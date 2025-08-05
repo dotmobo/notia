@@ -167,6 +167,53 @@ class VectorStore:
         LOG.info(f"Searching notes with query: '{query}'")
         return self.collection.query(query_texts=[query], n_results=n_results)
 
+    def get_all_notes(self) -> chromadb.QueryResult:
+        """
+        Retrieves all notes from the vector store.
+
+        Returns:
+            chromadb.QueryResult: All notes in the database.
+        """
+        LOG.info("Retrieving all notes from vector store.")
+        return self.collection.get(limit=1000)
+
+    def get_notes_by_tags(self, tags: list[str]) -> dict:
+        """
+        Retrieves notes that contain any of the specified tags.
+
+        Args:
+            tags (list[str]): A list of tags to search for.
+
+        Returns:
+            dict: The search results containing note IDs, documents, and metadata.
+        """
+        LOG.info(f"Retrieving notes with tags: {tags}")
+        all_notes = self.get_all_notes()
+
+        if not all_notes or not all_notes.get("ids"):
+            return {"ids": [], "documents": [], "metadatas": []}
+
+        matching_ids = []
+        matching_documents = []
+        matching_metadatas = []
+
+        search_tags_set = set(tags)
+
+        for i, metadata in enumerate(all_notes["metadatas"]):
+            note_tags_str = metadata.get("tags", "")
+            if note_tags_str:
+                note_tags_set = set(tag.strip() for tag in note_tags_str.split(","))
+                if not search_tags_set.isdisjoint(note_tags_set):
+                    matching_ids.append(all_notes["ids"][i])
+                    matching_documents.append(all_notes["documents"][i])
+                    matching_metadatas.append(all_notes["metadatas"][i])
+
+        return {
+            "ids": matching_ids,
+            "documents": matching_documents,
+            "metadatas": matching_metadatas,
+        }
+
 
 # Initialize the vector store once
 vs = VectorStore()

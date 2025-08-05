@@ -38,7 +38,7 @@ def list_all_notes() -> dict:
     """
     LOG.info("Tool called: list_all_notes")
 
-    notes_data = vs.collection.get(limit=1000)
+    notes_data = vs.get_all_notes()
 
     if not notes_data or not notes_data.get("ids"):
         console.print("[bold yellow]No notes found.[/bold yellow]")
@@ -150,6 +150,49 @@ def get_note_by_id(note_id: str) -> dict:
 
 
 @function_tool
+def search_notes_by_tags(tags: str) -> dict:
+    """
+    Searches for notes by tags and displays them to the user.
+
+    Args:
+        tags (str): A comma-separated string of tags to search for.
+
+    Returns:
+        dict: The raw search result data from the vector store.
+    """
+    LOG.info(f"Tool called: search_notes_by_tags with tags: '{tags}'")
+
+    tag_list = [tag.strip() for tag in tags.split(",")]
+    notes_data = vs.get_notes_by_tags(tag_list)
+
+    if not notes_data or not notes_data.get("ids"):
+        console.print("[bold yellow]No matching notes found.[/bold yellow]")
+        return {}
+
+    table = Table(
+        title=f"Search Results for tags: '{tags}'",
+        show_header=True,
+        header_style="bold cyan",
+    )
+    table.add_column("ID", style="dim", width=36)
+    table.add_column("Content")
+    table.add_column("Tags")
+    table.add_column("Timestamp")
+
+    for i, note_id in enumerate(notes_data["ids"]):
+        content = notes_data["documents"][i]
+        metadata = notes_data["metadatas"][i]
+        tags = metadata.get("tags", "")
+        timestamp = metadata.get("timestamp", "")
+
+        table.add_row(note_id, content, tags, timestamp)
+
+    console.print(table)
+
+    return notes_data
+
+
+@function_tool
 async def search_notes(
     query: str, initial_n_results: int = 20, final_n_results: int = 5
 ) -> dict:
@@ -244,4 +287,12 @@ async def search_notes(
 
 
 # Export a list of the decorated functions for the agent
-tools = [add_note, list_all_notes, delete_note, search_notes, edit_note, get_note_by_id]
+tools = [
+    add_note,
+    list_all_notes,
+    delete_note,
+    search_notes,
+    edit_note,
+    get_note_by_id,
+    search_notes_by_tags,
+]
