@@ -112,6 +112,44 @@ def edit_note(note_id: str, new_content: str, new_tags: str = "") -> str:
 
 
 @function_tool
+def get_note_by_id(note_id: str) -> dict:
+    """
+    Retrieves and displays a single note by its ID.
+
+    Args:
+        note_id (str): The exact ID of the note to retrieve.
+
+    Returns:
+        dict: The raw data of the note from the vector store.
+    """
+    LOG.info(f"Tool called: get_note_by_id with id: {note_id}")
+
+    note_data = vs.get_note(note_id)
+
+    if not note_data or not note_data.get("ids"):
+        console.print(f"[bold yellow]No note found with ID: {note_id}[/bold yellow]")
+        return {}
+
+    table = Table(show_header=True, header_style="bold magenta")
+    table.add_column("ID", style="dim", width=36)
+    table.add_column("Content")
+    table.add_column("Tags")
+    table.add_column("Timestamp")
+
+    note_id = note_data["ids"][0]
+    content = note_data["documents"][0]
+    metadata = note_data["metadatas"][0]
+    tags = metadata.get("tags", "")
+    timestamp = metadata.get("timestamp", "")
+
+    table.add_row(note_id, content, tags, timestamp)
+
+    console.print(table)
+
+    return note_data
+
+
+@function_tool
 async def search_notes(
     query: str, initial_n_results: int = 20, final_n_results: int = 5
 ) -> dict:
@@ -206,4 +244,4 @@ async def search_notes(
 
 
 # Export a list of the decorated functions for the agent
-tools = [add_note, list_all_notes, delete_note, search_notes, edit_note]
+tools = [add_note, list_all_notes, delete_note, search_notes, edit_note, get_note_by_id]
