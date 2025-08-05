@@ -4,6 +4,8 @@ from models import Note
 from rich.table import Table
 from console import console
 from vector_store import vs
+import csv
+import os
 
 LOG = logging.getLogger(__name__)
 
@@ -302,6 +304,41 @@ async def search_notes(
     }
 
 
+@function_tool
+def export_notes_by_project_to_csv(project: str) -> str:
+    """
+    Exports all notes from a specific project to a CSV file in the dist/ folder.
+
+    Args:
+        project (str): The project name to export notes from.
+
+    Returns:
+        str: Confirmation message with the export file path.
+    """
+    LOG.info(f"Tool called: export_notes_by_project_to_csv for project: {project}")
+
+    # Create dist directory if it doesn't exist
+    os.makedirs("dist", exist_ok=True)
+
+    filepath = f"dist/notes_{project}.csv"
+
+    notes_data = vs.get_notes_by_project(project)
+    if not notes_data or not notes_data.get("ids"):
+        return f"No notes found for project '{project}'."
+
+    with open(filepath, mode="w", newline="", encoding="utf-8") as csvfile:
+        writer = csv.writer(csvfile)
+        writer.writerow(["ID", "Content", "Project", "Timestamp"])
+        for i, note_id in enumerate(notes_data["ids"]):
+            content = notes_data["documents"][i]
+            metadata = notes_data["metadatas"][i]
+            project_name = metadata.get("project", "")
+            timestamp = metadata.get("timestamp", "")
+            writer.writerow([note_id, content, project_name, timestamp])
+
+    return f"Exported {len(notes_data['ids'])} notes from project '{project}' to {filepath}."
+
+
 # Export a list of the decorated functions for the agent
 tools = [
     add_note,
@@ -312,4 +349,5 @@ tools = [
     get_note_by_id,
     search_notes_by_project,
     list_all_projects,
+    export_notes_by_project_to_csv,
 ]

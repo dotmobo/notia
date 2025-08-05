@@ -96,6 +96,9 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
 - **Search for notes by project:**
   > Search for notes with project: auth-backend
 
+- **Export notes to CSV:**
+  > Export notes from project auth-backend to CSV
+
 - **Have a conversation:**
   > Search for notes about authentication
   > [...search results...]
