@@ -84,6 +84,9 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
 - **Delete a note (you need its ID from the list or add command):**
   > Delete the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx.
 
+- **Edit a note (you need its ID from the list or add command):**
+  > Edit the note with ID xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx. New content: I have refactored the authentication module. New tags: auth, backend, completed.
+
 - **Have a conversation:**
   > Search for notes about authentication
   > [...search results...]

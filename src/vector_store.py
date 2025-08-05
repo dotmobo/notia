@@ -4,6 +4,8 @@ from chromadb.utils import embedding_functions
 import httpx
 import logging
 
+from models import Note
+
 LOG = logging.getLogger(__name__)
 
 
@@ -86,7 +88,7 @@ class VectorStore:
                 )
                 return []
 
-    def add_note(self, note):
+    def add_note(self, note: Note):
         """
         Adds a note to the vector store.
 
@@ -116,6 +118,27 @@ class VectorStore:
         """
         LOG.info(f"Retrieving note with ID {id} from vector store.")
         return self.collection.get(ids=[id])
+
+    def update_note(self, note: Note):
+        """
+        Overwrites an existing note in the vector store.
+
+        If a note with the same ID already exists, its content, tags, and timestamp
+        will be completely replaced with the new data provided in the `note` object.
+
+        Args:
+            note (Note): The note object containing the new data.
+        Returns:
+            None
+        """
+        LOG.info(f"Updating note with ID {note.id} in vector store.")
+        self.collection.update(
+            ids=[note.id],
+            documents=[note.content],
+            metadatas=[
+                {"timestamp": note.timestamp.isoformat(), "tags": ",".join(note.tags)}
+            ],
+        )
 
     def delete_note(self, id: str):
         """

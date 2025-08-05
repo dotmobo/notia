@@ -80,6 +80,38 @@ def delete_note(note_id: str) -> str:
 
 
 @function_tool
+def edit_note(note_id: str, new_content: str, new_tags: str = "") -> str:
+    """
+    Overwrites an existing note with new content and tags.
+
+    This function completely replaces the content and tags of an existing note
+    identified by its ID. The timestamp is automatically updated to the current time.
+
+    Args:
+        note_id (str): The ID of the note to edit.
+        new_content (str): The new content to overwrite the note with.
+        new_tags (str, optional): A comma-separated string of new tags. Defaults to "".
+
+    Returns:
+        str: A confirmation message indicating the note has been updated.
+    """
+    LOG.info(f"Tool called: edit_note with id: {note_id}")
+
+    # Create a new note object with the provided data
+    tag_list = [tag.strip() for tag in new_tags.split(",")] if new_tags else []
+    updated_note = Note(
+        id=note_id,
+        content=new_content,
+        tags=tag_list,
+    )
+
+    # Overwrite the existing note in the vector store
+    vs.update_note(updated_note)
+
+    return f"Note with ID {note_id} has been updated."
+
+
+@function_tool
 async def search_notes(
     query: str, initial_n_results: int = 20, final_n_results: int = 5
 ) -> dict:
@@ -174,4 +206,4 @@ async def search_notes(
 
 
 # Export a list of the decorated functions for the agent
-tools = [add_note, list_all_notes, delete_note, search_notes]
+tools = [add_note, list_all_notes, delete_note, search_notes, edit_note]
