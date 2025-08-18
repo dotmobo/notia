@@ -17,3 +17,6 @@ wheels/
 
 # CSV files
 dist/
+
+# Editor
+.vscode/

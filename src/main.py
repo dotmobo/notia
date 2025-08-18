@@ -4,7 +4,6 @@ import logging
 from dotenv import load_dotenv
 from textwrap import dedent
 from prompt_toolkit import PromptSession
-from prompt_toolkit.history import FileHistory
 from prompt_toolkit.formatted_text import HTML
 
 from agents import (

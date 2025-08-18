@@ -1,5 +1,6 @@
 import datetime
 import uuid
+from typing import Optional
 
 
 class Note:
@@ -15,9 +16,9 @@ class Note:
     def __init__(
         self,
         content: str,
-        project: str = None,
-        timestamp: datetime.datetime = None,
-        id: str = None,
+        project: Optional[str] = None,
+        timestamp: Optional[datetime.datetime] = None,
+        id: Optional[str] = None,
     ):
         self.id = id or str(uuid.uuid4())
         self.content = content
