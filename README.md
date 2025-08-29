@@ -44,7 +44,7 @@ Leveraging a vector database, Notia allows for intelligent, semantic search acro
 
 4.  **Build the Rust analysis module:**
     ```bash
-    cd rust_analyzer && maturin develop
+    cd rust_analyzer && maturin develop -r
     ```
 
 ### Configuration
