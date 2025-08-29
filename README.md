@@ -13,12 +13,14 @@ Leveraging a vector database, Notia allows for intelligent, semantic search acro
 - **Semantic Search**: Ask questions and find the most relevant notes, even if the keywords don't match exactly.
 - **Persistent Memory**: Notia remembers the context of your conversation for a more natural interaction.
 - **Local-First**: All your notes are stored locally in a ChromaDB database.
+- **High-Performance Analysis**: Leverage Rust for fast and efficient data processing on your notes.
 
 ## Getting Started
 
 ### Prerequisites
 
 - Python 3.11 or higher
+- Rust and Cargo (install via https://rustup.rs/)
 - An OpenAI-compatible API key and endpoint
 
 ### Installation
@@ -38,6 +40,11 @@ Leveraging a vector database, Notia allows for intelligent, semantic search acro
 3.  **Install the dependencies in editable mode:**
     ```bash
     pip install -e .
+    ```
+
+4.  **Build the Rust analysis module:**
+    ```bash
+    cd rust_analyzer && maturin develop
     ```
 
 ### Configuration
@@ -103,5 +110,8 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
   > Search for notes about authentication
   > [...search results...]
   > Summarize them
+
+- **Analyze all notes:**
+  > Analyze all notes.
 
 To exit the application, simply type `exit` or `quit`.

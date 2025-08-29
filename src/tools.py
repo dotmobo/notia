@@ -6,6 +6,8 @@ from console import console
 from vector_store import vs
 import csv
 import os
+import json
+from notia_analyzer import analyze_notes_content
 
 LOG = logging.getLogger(__name__)
 
@@ -339,6 +341,44 @@ def export_notes_by_project_to_csv(project: str) -> str:
     return f"Exported {len(notes_data['ids'])} notes from project '{project}' to {filepath}."
 
 
+@function_tool
+def analyze_all_notes() -> str:
+    """
+    Performs a content analysis on all notes using the high-performance Rust module.
+    This is an example of a CPU-bound task offloaded to Rust.
+
+    Returns:
+        str: The analysis result from the Rust module.
+    """
+    LOG.info("Tool called: analyze_all_notes")
+
+    notes_data = vs.get_all_notes()
+
+    if not notes_data or not notes_data.get("ids"):
+        return "No notes found to analyze."
+
+    # Prepare data for Rust module (list of dicts -> JSON string)
+    notes_for_analysis = []
+    for i, note_id in enumerate(notes_data["ids"]):
+        notes_for_analysis.append({
+            "id": note_id,
+            "content": notes_data["documents"][i],
+            "project": notes_data["metadatas"][i].get("project", ""),
+        })
+
+    notes_json = json.dumps(notes_for_analysis)
+
+    # Call the Rust function
+    try:
+        analysis_result = analyze_notes_content(notes_json)
+        console.print(f"[bold blue]Analysis Complete:[/bold blue] {analysis_result}")
+        return analysis_result
+    except Exception as e:
+        error_message = f"Error calling Rust analysis module: {e}"
+        LOG.error(error_message)
+        return error_message
+
+
 # Export a list of the decorated functions for the agent
 tools = [
     add_note,
@@ -350,4 +390,5 @@ tools = [
     search_notes_by_project,
     list_all_projects,
     export_notes_by_project_to_csv,
+    analyze_all_notes,
 ]

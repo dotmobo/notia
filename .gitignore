@@ -20,3 +20,6 @@ dist/
 
 # Editor
 .vscode/
+
+# Rust
+rust_analyzer/target/
