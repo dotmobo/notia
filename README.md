@@ -114,4 +114,8 @@ You will be greeted by the `notia>` prompt. Here are a few examples of what you 
 - **Analyze all notes:**
   > Analyze all notes.
 
+- **Extract top keywords:**
+  > Extract top keywords.
+  > Extract 20 top keywords.
+
 To exit the application, simply type `exit` or `quit`.

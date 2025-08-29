@@ -7,7 +7,7 @@ from vector_store import vs
 import csv
 import os
 import json
-from notia_analyzer import analyze_notes_content
+from notia_analyzer import analyze_notes_content, extract_keywords #ty: ignore[unresolved-import]
 
 LOG = logging.getLogger(__name__)
 
@@ -379,6 +379,44 @@ def analyze_all_notes() -> str:
         return error_message
 
 
+@function_tool
+def extract_top_keywords(top_n: int = 10) -> str:
+    """
+    Extracts the most frequent keywords from all notes using the Rust analysis module.
+
+    Args:
+        top_n (int): The number of top keywords to extract. Defaults to 10.
+
+    Returns:
+        str: A formatted string of the top keywords and their counts.
+    """
+    LOG.info(f"Tool called: extract_top_keywords with top_n: {top_n}")
+
+    notes_data = vs.get_all_notes()
+
+    if not notes_data or not notes_data.get("ids"):
+        return "No notes found to extract keywords from."
+
+    notes_for_analysis = []
+    for i, note_id in enumerate(notes_data["ids"]):
+        notes_for_analysis.append({
+            "id": note_id,
+            "content": notes_data["documents"][i],
+            "project": notes_data["metadatas"][i].get("project", ""),
+        })
+
+    notes_json = json.dumps(notes_for_analysis)
+
+    try:
+        keywords_result = extract_keywords(notes_json, top_n)
+        console.print(f"[bold green]Top {top_n} Keywords:[/bold green] {keywords_result}")
+        return keywords_result
+    except Exception as e:
+        error_message = f"Error calling Rust keyword extraction module: {e}"
+        LOG.error(error_message)
+        return error_message
+
+
 # Export a list of the decorated functions for the agent
 tools = [
     add_note,
@@ -391,4 +429,5 @@ tools = [
     list_all_projects,
     export_notes_by_project_to_csv,
     analyze_all_notes,
+    extract_top_keywords,
 ]
