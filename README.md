@@ -1,10 +1,11 @@
-# Notia - Your Second Brain for Development Projects
+<p align="center">
+  <img src="logo.png" alt="Notia Logo" width="170"/>
+</p>
+<h1 align="center">Notia - Your Second Brain for Development Projects</h1>
 
 **Notia** is a powerful, command-line-based AI assistant designed to act as a second brain for developers. It helps you manage project-related notes, ideas, tasks, and code snippets seamlessly through a conversational interface.
 
 Leveraging a vector database, Notia allows for intelligent, semantic search across all your notes, making it easy to find information, recall context, and discover connections between your ideas.
-
----
 
 ## Features
 
@@ -21,7 +22,7 @@ Leveraging a vector database, Notia allows for intelligent, semantic search acro
 
 - Python 3.11 or higher
 - Rust and Cargo (install via https://rustup.rs/)
-- An OpenAI-compatible API key and endpoint
+- An OpenAI-compatible API key and endpoint with a chat model, an embedding model, and a reranking model
 
 ### Installation
 
