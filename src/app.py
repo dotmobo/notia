@@ -45,9 +45,14 @@ def main():
         st.error(f"Missing required environment variables: {', '.join(missing)}")
         return
 
-    agent, session = setup_agent_and_session()
-
     st.title("Notia - Your Second Brain for Development Projects")
+
+    # Initialize agent and session in Streamlit's session state
+    if "agent" not in st.session_state:
+        st.session_state.agent, st.session_state.session = setup_agent_and_session()
+
+    agent = st.session_state.agent
+    session = st.session_state.session
 
     # Initialize chat history
     if "messages" not in st.session_state:
