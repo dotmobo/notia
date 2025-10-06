@@ -7,6 +7,7 @@ from vector_store import vs
 import csv
 import os
 import json
+import datetime
 from notia_analyzer import analyze_notes_content, extract_keywords #ty: ignore[unresolved-import]
 
 LOG = logging.getLogger(__name__)
@@ -417,6 +418,40 @@ def extract_top_keywords(top_n: int = 10) -> str:
         return error_message
 
 
+@function_tool
+
+def import_notes_from_csv(filepath: str) -> str:
+    """
+    Imports notes from a CSV file into the system.
+
+    The CSV must have the columns: ID, Content, Project, Timestamp.
+    Existing notes are added to the vector store; if an ID is provided it will be used.
+    """
+    LOG.info(f"Tool called: import_notes_from_csv with filepath: {filepath}")
+
+    if not os.path.isfile(filepath):
+        return f"File not found: {filepath}"
+
+    imported = 0
+    with open(filepath, newline="", encoding="utf-8") as csvfile:
+        reader = csv.DictReader(csvfile)
+        for row in reader:
+            note_id = row.get("ID") or None
+            content = row.get("Content", "")
+            project = row.get("Project") or None
+            timestamp_str = row.get("Timestamp")
+            timestamp = None
+            if timestamp_str:
+                try:
+                    timestamp = datetime.datetime.fromisoformat(timestamp_str)
+                except Exception:
+                    timestamp = None
+            note = Note(content=content, project=project, timestamp=timestamp, id=note_id)
+            vs.add_note(note)
+            imported += 1
+
+    return f"Imported {imported} notes from {filepath}."
+
 # Export a list of the decorated functions for the agent
 tools = [
     add_note,
@@ -430,4 +465,5 @@ tools = [
     export_notes_by_project_to_csv,
     analyze_all_notes,
     extract_top_keywords,
+    import_notes_from_csv,
 ]
