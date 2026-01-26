@@ -1,0 +1,372 @@
+manifest:
+  version: "0.1.2"
+  schema: https://a2as.org/cert/schema
+  subject:
+    name: dotmobo/notia
+    source: https://github.com/dotmobo/notia
+    branch: master
+    commit: "5ba760d3"
+    scope: [src/console.py, src/app.py, src/vector_store.py, src/tools.py, src/models.py, src/main.py, src/core.py, src/constants.py]
+  issued:
+    by: A2AS.org
+    at: '2026-01-26T16:16:02Z'
+  signatures:
+    digest: sha256:0q-_SyvNRJNkWxLFYw3WMnBhK9UaDwGh0mCTdwfN-LY
+    key: ed25519:Zyf496V4MWs2DjJ6Mjo9Eqq9uNGZcVyg_hFHCjX-0ZM
+    sig: ed25519:YBw5DrqOGdzD4PawKIG9sGt8X5peGW9W0_9gP4HBvjy9Prvqb2fNKW4UHjsxJOnKSMKSmb2gBqzvuXnc-6ruCQ
+
+agents:
+  agent:
+    type: instance
+    models: [model]
+    tools: [tools]
+    params:
+      function: setup_agent_and_session
+      name: Notia
+      instructions: [SYSTEM_PROMPT]
+
+models:
+  model:
+    type: variable
+    agents: [agent]
+
+tools:
+  add_note:
+    type: decorator
+    params:
+      description: |-
+        Adds a new note with content and optional project.
+
+        Args:
+            content (str): The main content of the note.
+            project (str, optional): The project name for this note. Defaults to "".
+
+        Returns:
+            str: A confirmation message with the new note's ID.
+  analyze_all_notes:
+    type: decorator
+    params:
+      description: |-
+        Performs a content analysis on all notes using the high-performance Rust module.
+        This is an example of a CPU-bound task offloaded to Rust.
+
+        Returns:
+            str: The analysis result from the Rust module.
+  delete_note:
+    type: decorator
+    params:
+      description: |-
+        Deletes a note specified by its unique ID.
+
+        Args:
+            note_id (str): The exact ID of the note to be deleted.
+
+        Returns:
+            str: A confirmation message indicating the note has been deleted.
+  edit_note:
+    type: decorator
+    params:
+      description: |-
+        Overwrites an existing note with new content and project.
+
+        This function completely replaces the content and project of an existing note
+        identified by its ID. The timestamp is automatically updated to the current time.
+
+        Args:
+            note_id (str): The ID of the note to edit.
+            new_content (str): The new content to overwrite the note with.
+            new_project (str, optional): The new project name. Defaults to "".
+
+        Returns:
+            str: A confirmation message indicating the note has been updated.
+  export_notes_by_project_to_csv:
+    type: decorator
+    params:
+      description: |-
+        Exports all notes from a specific project to a CSV file in the dist/ folder.
+
+        Args:
+            project (str): The project name to export notes from.
+
+        Returns:
+            str: Confirmation message with the export file path.
+  extract_top_keywords:
+    type: decorator
+    params:
+      description: |-
+        Extracts the most frequent keywords from all notes using the Rust analysis module.
+
+        Args:
+            top_n (int): The number of top keywords to extract. Defaults to 10.
+
+        Returns:
+            str: A formatted string of the top keywords and their counts.
+  get_note_by_id:
+    type: decorator
+    params:
+      description: |-
+        Retrieves and displays a single note by its ID.
+
+        Args:
+            note_id (str): The exact ID of the note to retrieve.
+
+        Returns:
+            dict: The raw data of the note from the vector store.
+  import_notes_from_csv:
+    type: decorator
+    params:
+      description: |-
+        Imports notes from a CSV file into the system.
+
+        The CSV must have the columns: ID, Content, Project, Timestamp.
+        Existing notes are added to the vector store; if an ID is provided it will be used.
+  list_all_notes:
+    type: decorator
+    params:
+      description: |-
+        Lists all notes, displaying them to the user in a formatted table and returning the raw data.
+        The user has already seen the formatted table in the console.
+
+        Returns:
+            dict: The raw data of all notes from the vector store.
+  list_all_projects:
+    type: decorator
+    params:
+      description: |-
+        Lists all unique projects in the system.
+
+        Returns:
+            list[str]: List of all unique project names.
+  search_notes:
+    type: decorator
+    params:
+      description: |-
+        Searches for notes, displays them to the user in a formatted table, and returns the raw data.
+        The user has already seen the formatted table in the console.
+
+        Args:
+            query (str): The search query for finding semantically similar notes.
+            initial_n_results (int, optional): The number of results to retrieve from the vector store before reranking. Defaults to 20.
+            final_n_results (int, optional): The number of top results to return after reranking. Defaults to 5.
+
+        Returns:
+            dict: The raw search result data from the vector store.
+  search_notes_by_project:
+    type: decorator
+    params:
+      description: |-
+        Searches for notes by project and displays them to the user.
+
+        Args:
+            project (str): The project name to search for.
+
+        Returns:
+            dict: The raw search result data from the vector store.
+  tools:
+    type: variable
+    agents: [agent]
+    params:
+      dynamic: "True"
+
+imports:
+  Agent: agents.Agent
+  analyze_notes_content: notia_analyzer.analyze_notes_content
+  asyncio: asyncio
+  AsyncOpenAI: agents.AsyncOpenAI
+  chromadb: chromadb
+  Console: rich.console.Console
+  console: console.console
+  csv: csv
+  datetime: datetime
+  dedent: textwrap.dedent
+  embedding_functions: chromadb.utils.embedding_functions
+  extract_keywords: notia_analyzer.extract_keywords
+  function_tool: agents.function_tool
+  HTML: prompt_toolkit.formatted_text.HTML
+  httpx: httpx
+  json: json
+  load_and_check_env_vars: core.load_and_check_env_vars
+  load_dotenv: dotenv.load_dotenv
+  logging: logging
+  Note: models.Note
+  OpenAIChatCompletionsModel: agents.OpenAIChatCompletionsModel
+  Optional: typing.Optional
+  os: os
+  PromptSession: prompt_toolkit.PromptSession
+  run_query: core.run_query
+  Runner: agents.Runner
+  set_tracing_disabled: agents.set_tracing_disabled
+  setup_agent_and_session: core.setup_agent_and_session
+  SQLiteSession: agents.SQLiteSession
+  st: streamlit
+  SYSTEM_PROMPT: constants.SYSTEM_PROMPT
+  Table: rich.table.Table
+  tools: tools.tools
+  uuid: uuid
+  vs: vector_store.vs
+
+functions:
+  __init__:
+    type: sync
+    module: src.models
+    args: [self, content, project, timestamp, id]
+  add_note:
+    type: tool
+    module: src.tools
+    args: [content, project]
+    params:
+      returns: str
+  analyze_all_notes:
+    type: tool
+    module: src.tools
+    params:
+      returns: str
+  cli:
+    type: sync
+    module: src.main
+  delete_note:
+    type: tool
+    module: src.tools
+    args: [note_id]
+    params:
+      returns: str
+  edit_note:
+    type: tool
+    module: src.tools
+    args: [note_id, new_content, new_project]
+    params:
+      returns: str
+  export_notes_by_project_to_csv:
+    type: tool
+    module: src.tools
+    args: [project]
+    params:
+      returns: str
+  extract_top_keywords:
+    type: tool
+    module: src.tools
+    args: [top_n]
+    params:
+      returns: str
+  get_all_notes:
+    type: sync
+    module: src.vector_store
+    args: [self]
+    params:
+      returns: chromadb.QueryResult
+  get_all_projects:
+    type: sync
+    module: src.vector_store
+    args: [self]
+    params:
+      returns: list[str]
+  get_note:
+    type: sync
+    module: src.vector_store
+    args: [self, id]
+    params:
+      returns: chromadb.GetResult
+  get_note_by_id:
+    type: tool
+    module: src.tools
+    args: [note_id]
+    params:
+      returns: dict
+  get_notes_by_project:
+    type: sync
+    module: src.vector_store
+    args: [self, project]
+    params:
+      returns: dict
+  import_notes_from_csv:
+    type: tool
+    module: src.tools
+    args: [filepath]
+    params:
+      returns: str
+  list_all_notes:
+    type: tool
+    module: src.tools
+    params:
+      returns: dict
+  list_all_projects:
+    type: tool
+    module: src.tools
+    params:
+      returns: list[str]
+  load_and_check_env_vars:
+    type: sync
+    module: src.core
+  main:
+    type: async
+    module: src.main
+  process_query:
+    type: async
+    module: src.main
+    args: [agent, session, query]
+  rerank_documents:
+    type: async
+    module: src.vector_store
+    args: [self, query, documents]
+    params:
+      returns: list[dict]
+  run_query:
+    type: async
+    module: src.core
+    args: [agent, session, query]
+    params:
+      returns: str
+  search_notes:
+    type: tool
+    module: src.tools
+    args: [query, initial_n_results, final_n_results]
+    params:
+      returns: dict
+  search_notes_by_project:
+    type: tool
+    module: src.tools
+    args: [project]
+    params:
+      returns: dict
+  setup_agent_and_session:
+    type: sync
+    module: src.core
+  update_note:
+    type: sync
+    module: src.vector_store
+    args: [self, note]
+
+variables:
+  OPENAI_API_BASE:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [src.vector_store, src.core]
+  OPENAI_API_KEY:
+    type: env
+    params:
+      caller: [os.getenv, AsyncOpenAI]
+      path: [src.vector_store, src.core]
+  OPENAI_API_MODEL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [src.core]
+  OPENAI_EMBEDDING_MODEL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [src.vector_store]
+  OPENAI_RERANK_MODEL:
+    type: env
+    params:
+      caller: [os.getenv]
+      path: [src.vector_store]
+
+files:
+  filepath:
+    type: variable
+    actions: [read, write]
+    params:
+      caller: [open, csv.writer, os.path.isfile, csv.DictReader]
+      alias: [csvfile]
